@@ -1,12 +1,12 @@
 name: Generate and Obfuscate Worker Script
 
 on:
+  # 允许手动触发
   workflow_dispatch:
-  push:
-    branches:
-      - '**'  # 仅匹配分支推送，排除标签推送
-    paths:
-      - '明文源吗'
+  # 每天 UTC 00:00 自动执行一次 (即每天早上 8 点, GMT+8)
+  schedule:
+    - cron: '0 0 * * *' 
+  # 移除了 push 触发器以减少执行频率，只保留手动和定时
 
 jobs:
   build-and-obfuscate:
@@ -96,6 +96,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit, the obfuscated file is already up-to-date."
           else
-            git commit -m "部署用这个"
+            git commit -m "部署用这个 [skip ci]" # 增加 [skip ci] 防止自动提交触发其他工作流
             git push
           fi
