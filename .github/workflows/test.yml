@@ -1,9 +1,12 @@
 name: Deploy Worker Script
 
 on:
+  # 允许手动触发
+  workflow_dispatch:
+  # 当任何标签被推送时触发 (保留此项，因为部署通常与版本标签关联)
   push:
     tags:
-      - '*'  # 当任何标签被推送时触发
+      - '*'
 
 jobs:
   deploy-worker:
@@ -13,14 +16,20 @@ jobs:
       - name: Get tag name
         id: get_tag
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
+          # 检查是否由标签触发，如果不是，使用自定义名称
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            TAG_NAME=${GITHUB_REF#refs/tags/}
+          else
+            # 如果是手动触发，使用日期和时间作为标签名
+            TAG_NAME="manual-$(date +%Y%m%d%H%M%S)"
+          fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "当前标签: $TAG_NAME"
       
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 需要完整的Git历史来获取标签信息
+          fetch-depth: 0
       
       - name: Check if source file exists
         run: |
